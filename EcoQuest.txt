@@ -1,0 +1,1654 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EcoQuest - Gamified Environmental Education</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Poppins', sans-serif; }
+        
+        .game-card:hover { transform: translateY(-5px); }
+        .drag-item { cursor: grab; }
+        .drag-item:active { cursor: grabbing; }
+        .drop-zone { min-height: 120px; }
+        .drop-zone.drag-over { background-color: rgba(34, 197, 94, 0.1); border-color: #22c55e; }
+        
+        @keyframes bounce {
+            0%, 20%, 53%, 80%, 100% { transform: translate3d(0,0,0); }
+            40%, 43% { transform: translate3d(0, -30px, 0); }
+            70% { transform: translate3d(0, -15px, 0); }
+            90% { transform: translate3d(0, -4px, 0); }
+        }
+        
+        .bounce { animation: bounce 1s ease; }
+        
+        .fade-in { animation: fadeIn 0.5s ease-in; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-green-50 to-blue-50 min-h-screen">
+    <!-- Login Screen -->
+    <div id="loginScreen" class="min-h-screen flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl p-8 w-full max-w-md">
+            <div class="text-center mb-8">
+                <div class="text-6xl mb-4">🌱</div>
+                <h1 class="text-3xl font-bold text-green-600 mb-2">EcoQuest</h1>
+                <p class="text-gray-600">Gamified Environmental Education Platform</p>
+            </div>
+            
+            <form id="loginForm" class="space-y-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                    <input type="text" id="fullName" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="Enter your full name">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Email</label>
+                    <input type="email" id="email" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="Enter your email">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">School/College</label>
+                    <input type="text" id="institution" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent" placeholder="Enter your institution name">
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Grade/Year</label>
+                    <select id="grade" required class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+                        <option value="">Select your grade/year</option>
+                        <option value="6">Grade 6</option>
+                        <option value="7">Grade 7</option>
+                        <option value="8">Grade 8</option>
+                        <option value="9">Grade 9</option>
+                        <option value="10">Grade 10</option>
+                        <option value="11">Grade 11</option>
+                        <option value="12">Grade 12</option>
+                        <option value="college-1">College Year 1</option>
+                        <option value="college-2">College Year 2</option>
+                        <option value="college-3">College Year 3</option>
+                        <option value="college-4">College Year 4</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="w-full bg-gradient-to-r from-green-500 to-blue-500 text-white py-3 rounded-lg font-semibold hover:from-green-600 hover:to-blue-600 transition-all duration-300 transform hover:scale-105">
+                    Start Learning! 🚀
+                </button>
+
+            </form>
+        </div>
+    </div>
+
+    <!-- Main Dashboard -->
+    <div id="dashboard" class="hidden min-h-screen">
+        <!-- Header -->
+        <header class="bg-white shadow-lg">
+            <div class="max-w-7xl mx-auto px-4 py-4">
+                <div class="flex justify-between items-center">
+                    <div class="flex items-center space-x-4">
+                        <div class="text-3xl">🌱</div>
+                        <div>
+                            <h1 class="text-2xl font-bold text-green-600">EcoQuest</h1>
+                            <p class="text-sm text-gray-600" id="welcomeMessage">Welcome back!</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center space-x-6">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-green-600" id="userScore">0</div>
+                            <div class="text-xs text-gray-600">Total Points</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-blue-600" id="userLevel">1</div>
+                            <div class="text-xs text-gray-600">Level</div>
+                        </div>
+                        <!-- Profile Button -->
+<button onclick="showProfile()" 
+    class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600 transition-colors">
+    👤
+</button>
+
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="bg-green-600 text-white">
+            <div class="max-w-7xl mx-auto px-4">
+                <div class="flex space-x-8">
+                    <button onclick="showSection('games')" class="nav-btn py-4 px-6 hover:bg-green-700 transition-colors border-b-2 border-transparent hover:border-white">
+                        🎮 Games
+                    </button>
+                    <button onclick="showSection('progress')" class="nav-btn py-4 px-6 hover:bg-green-700 transition-colors border-b-2 border-transparent hover:border-white">
+                        📊 Progress
+                    </button>
+                    <button onclick="showSection('leaderboard')" class="nav-btn py-4 px-6 hover:bg-green-700 transition-colors border-b-2 border-transparent hover:border-white">
+                        🏆 Leaderboard
+                    </button>
+                </div>
+            </div>
+        </nav>
+        <!-- Profile Modal -->
+<div id="profileModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+    <div class="bg-white rounded-2xl p-8 max-w-md w-full shadow-xl">
+        <h2 class="text-2xl font-bold text-gray-800 mb-4">👤 Your Profile</h2>
+        <div class="space-y-3 text-gray-700">
+            <p><strong>Name:</strong> <span id="profileName"></span></p>
+            <p><strong>Email:</strong> <span id="profileEmail"></span></p>
+            <p><strong>Institution:</strong> <span id="profileInstitution"></span></p>
+            <p><strong>Grade/Year:</strong> <span id="profileGrade"></span></p>
+            <p><strong>Total Points:</strong> <span id="profilePoints"></span></p>
+            <p><strong>Level:</strong> <span id="profileLevel"></span></p>
+        </div>
+        <div class="mt-6 text-right">
+            <button onclick="logoutUser()" class="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600">
+                Logout
+            </button>
+            <button onclick="closeProfile()" class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+
+
+
+        <!-- Games Section -->
+        <div id="gamesSection" class="max-w-7xl mx-auto px-4 py-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">Choose Your Eco-Challenge! 🌍</h2>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Eco Wordle -->
+                <div class="game-card bg-white rounded-xl shadow-lg p-6 transition-all duration-300 hover:shadow-xl cursor-pointer" onclick="startGame('wordle')">
+                    <div class="text-4xl mb-4 text-center">🔤</div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Eco Wordle</h3>
+                    <p class="text-gray-600 text-sm mb-4">Guess environmental terms in this word puzzle game!</p>
+                    <div class="flex justify-between items-center">
+                        <div class="bg-green-100 text-green-800 px-3 py-1 rounded-full text-xs font-medium">+50 points</div>
+                        <div class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium" id="wordleLevelDisplay">Level 1/20</div>
+                    </div>
+                </div>
+
+                <!-- Quiz Challenge -->
+                <div class="game-card bg-white rounded-xl shadow-lg p-6 transition-all duration-300 hover:shadow-xl cursor-pointer" onclick="startGame('quiz')">
+                    <div class="text-4xl mb-4 text-center">🧠</div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Quiz Challenge</h3>
+                    <p class="text-gray-600 text-sm mb-4">Test your environmental knowledge with fun quizzes!</p>
+                    <div class="flex justify-between items-center">
+                        <div class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium">+30 points</div>
+                        <div class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium" id="quizLevelDisplay">Level 1/20</div>
+                    </div>
+                </div>
+
+                <!-- Eco Puzzle -->
+                <div class="game-card bg-white rounded-xl shadow-lg p-6 transition-all duration-300 hover:shadow-xl cursor-pointer" onclick="startGame('puzzle')">
+                    <div class="text-4xl mb-4 text-center">🧩</div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Eco Puzzle</h3>
+                    <p class="text-gray-600 text-sm mb-4">Solve environmental puzzles and learn facts!</p>
+                    <div class="flex justify-between items-center">
+                        <div class="bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-xs font-medium">+40 points</div>
+                        <div class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium" id="puzzleLevelDisplay">Level 1/20</div>
+                    </div>
+                </div>
+
+                <!-- Waste Sorting -->
+                <div class="game-card bg-white rounded-xl shadow-lg p-6 transition-all duration-300 hover:shadow-xl cursor-pointer" onclick="startGame('sorting')">
+                    <div class="text-4xl mb-4 text-center">♻️</div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Waste Sorting</h3>
+                    <p class="text-gray-600 text-sm mb-4">Sort waste items into recyclable and non-recyclable!</p>
+                    <div class="flex justify-between items-center">
+                        <div class="bg-orange-100 text-orange-800 px-3 py-1 rounded-full text-xs font-medium">+60 points</div>
+                        <div class="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-xs font-medium" id="sortingLevelDisplay">Level 1/20</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Progress Section -->
+        <div id="progressSection" class="hidden max-w-7xl mx-auto px-4 py-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">Your Learning Journey 📈</h2>
+            
+            <div class="grid md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="text-3xl mb-4 text-center">🎯</div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Games Completed</h3>
+                    <div class="text-3xl font-bold text-green-600" id="gamesCompleted">0</div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="text-3xl mb-4 text-center">⭐</div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Average Score</h3>
+                    <div class="text-3xl font-bold text-blue-600" id="averageScore">0%</div>
+                </div>
+                
+                <div class="bg-white rounded-xl shadow-lg p-6">
+                    <div class="text-3xl mb-4 text-center">🔥</div>
+                    <h3 class="text-xl font-semibold text-gray-800 mb-2">Current Streak</h3>
+                    <div class="text-3xl font-bold text-orange-600" id="currentStreak">0</div>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <h3 class="text-xl font-semibold text-gray-800 mb-4">Game Performance</h3>
+                <div class="space-y-4" id="gameStats">
+                    <!-- Game stats will be populated here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Leaderboard Section -->
+        <div id="leaderboardSection" class="hidden max-w-7xl mx-auto px-4 py-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">Top Eco-Warriors 🏆</h2>
+            
+            <div class="bg-white rounded-xl shadow-lg p-6">
+                <div class="space-y-4" id="leaderboardList">
+                    <!-- Leaderboard will be populated here -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Game Modals -->
+    
+    <!-- Wordle Game -->
+    <div id="wordleModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">Eco Wordle 🔤</h2>
+                <p class="text-gray-600 mb-2">Guess the 5-letter environmental term!</p>
+                <div class="text-sm text-blue-600 font-semibold mb-2">Level <span id="wordleLevel">1</span> of 20</div>
+                <div class="text-sm text-gray-500 mb-2">Word: <span id="wordleHint" class="font-semibold"></span></div>
+                <div class="text-xs text-yellow-600">💡 Green = correct letter & position, Yellow = correct letter wrong position</div>
+            </div>
+            
+            <div id="wordleGrid" class="grid grid-cols-5 gap-2 mb-6">
+                <!-- Wordle grid will be generated here -->
+            </div>
+            
+            <div class="flex justify-center space-x-4">
+                <button onclick="closeGame()" class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">Close</button>
+                <button onclick="showWordleHint()" class="px-6 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600">💡 Hint</button>
+                <button onclick="resetWordle()" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">New Word</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quiz Game -->
+    <div id="quizModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl p-8 max-w-2xl w-full">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">Quiz Challenge 🧠</h2>
+                <div class="text-sm text-blue-600 font-semibold mb-2">Level <span id="quizLevel">1</span> of 20</div>
+                <div class="text-sm text-gray-600 mb-2">Question <span id="questionNumber">1</span> of <span id="totalQuestions">5</span></div>
+                <div class="text-xs text-yellow-600">🎯 Get 60% or higher to advance to the next level!</div>
+            </div>
+            
+            <div id="quizContent">
+                <div class="mb-6">
+                    <h3 class="text-lg font-semibold text-gray-800 mb-4" id="questionText"></h3>
+                    <div class="space-y-3" id="answerOptions">
+                        <!-- Answer options will be populated here -->
+                    </div>
+                </div>
+                
+                <div class="flex justify-center space-x-4">
+                    <button onclick="closeGame()" class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">Close</button>
+                    <button onclick="showQuizHint()" id="quizHintBtn" class="px-6 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600">💡 Hint</button>
+                    <button onclick="nextQuestion()" id="nextBtn" class="hidden px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">Next Question</button>
+                </div>
+            </div>
+            
+            <div id="quizResults" class="hidden text-center">
+                <div class="text-6xl mb-4">🎉</div>
+                <h3 class="text-2xl font-bold text-gray-800 mb-2">Quiz Complete!</h3>
+                <p class="text-lg text-gray-600 mb-4">Your Score: <span id="quizScore" class="font-bold text-green-600"></span></p>
+                <div class="flex justify-center space-x-4">
+                    <button onclick="closeGame()" class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">Close</button>
+                    <button onclick="startGame('quiz')" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">Play Again</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Puzzle Game -->
+    <div id="puzzleModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl p-8 max-w-md w-full">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">Eco Puzzle 🧩</h2>
+                <div class="text-sm text-blue-600 font-semibold mb-2">Level <span id="puzzleLevel">1</span> of 20</div>
+                <p class="text-gray-600 mb-2">Unscramble the environmental term!</p>
+                <div class="text-xs text-yellow-600">💡 Use the hint below and the Hint button if you need help!</div>
+            </div>
+            
+            <div class="text-center mb-6">
+                <div class="text-2xl font-bold text-blue-600 mb-4" id="scrambledWord"></div>
+                <div class="text-sm text-gray-500 mb-4">Hint: <span id="puzzleHint"></span></div>
+                <input type="text" id="puzzleAnswer" class="w-full px-4 py-3 border border-gray-300 rounded-lg text-center text-lg font-semibold" placeholder="Your answer...">
+            </div>
+            
+            <div class="flex justify-center space-x-4">
+                <button onclick="closeGame()" class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">Close</button>
+                <button onclick="showPuzzleHint()" class="px-6 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600">💡 Hint</button>
+                <button onclick="checkPuzzleAnswer()" class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600">Check Answer</button>
+                <button onclick="newPuzzle()" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">New Puzzle</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Waste Sorting Game -->
+    <div id="sortingModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div class="bg-white rounded-2xl p-8 max-w-4xl w-full max-h-screen overflow-y-auto">
+            <div class="text-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-2">Waste Sorting Challenge ♻️</h2>
+                <div class="text-sm text-blue-600 font-semibold mb-2">Level <span id="sortingLevel">1</span> of 20</div>
+                <p class="text-gray-600 mb-2">Drag items to the correct bin!</p>
+                <p class="text-xs text-gray-500 mb-2">💡 Need help? Click the Hint button for guidance on any item!</p>
+                <div class="text-sm text-gray-500 mt-2">Score: <span id="sortingScore" class="font-bold text-green-600">0</span> | Items left: <span id="itemsLeft" class="font-bold text-blue-600">10</span></div>
+                <div class="text-xs text-yellow-600 mt-1">🎯 Get 80+ points to advance to the next level!</div>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-8 mb-6">
+                <!-- Recyclable Bin -->
+                <div class="drop-zone border-4 border-dashed border-green-400 rounded-xl p-6 bg-green-50" data-type="recyclable">
+                    <div class="text-center">
+                        <div class="text-4xl mb-2">♻️</div>
+                        <h3 class="text-lg font-semibold text-green-700">Recyclable</h3>
+                        <p class="text-sm text-green-600">Paper, plastic bottles, cans, etc.</p>
+                    </div>
+                    <div id="recyclableBin" class="mt-4 space-y-2">
+                        <!-- Sorted items will appear here -->
+                    </div>
+                </div>
+                
+                <!-- Non-Recyclable Bin -->
+                <div class="drop-zone border-4 border-dashed border-red-400 rounded-xl p-6 bg-red-50" data-type="non-recyclable">
+                    <div class="text-center">
+                        <div class="text-4xl mb-2">🗑️</div>
+                        <h3 class="text-lg font-semibold text-red-700">Non-Recyclable</h3>
+                        <p class="text-sm text-red-600">Food waste, tissues, ceramics, etc.</p>
+                    </div>
+                    <div id="nonRecyclableBin" class="mt-4 space-y-2">
+                        <!-- Sorted items will appear here -->
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Items to Sort -->
+            <div class="bg-gray-100 rounded-xl p-6 mb-6">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 text-center">Items to Sort</h3>
+                <div id="itemsToSort" class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                    <!-- Items will be populated here -->
+                </div>
+            </div>
+            
+            <div class="flex justify-center space-x-4">
+                <button onclick="closeGame()" class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600">Close</button>
+                <button onclick="showSortingHint()" class="px-6 py-2 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600">💡 Hint</button>
+                <button onclick="newSortingGame()" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">New Game</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Global variables
+        let currentUser = null;
+        let gameData = {
+            wordle: { played: 0, won: 0, totalScore: 0, currentLevel: 1, maxLevel: 20 },
+            quiz: { played: 0, won: 0, totalScore: 0, currentLevel: 1, maxLevel: 20 },
+            puzzle: { played: 0, won: 0, totalScore: 0, currentLevel: 1, maxLevel: 20 },
+            sorting: { played: 0, won: 0, totalScore: 0, currentLevel: 1, maxLevel: 20 }
+        };
+
+        // Environmental words for games
+        const ecoWords = [
+            // Level 1-5: Basic Environmental Terms
+            { word: 'SOLAR', hint: 'Energy from the sun', level: 1 },
+            { word: 'OCEAN', hint: 'Large body of saltwater', level: 1 },
+            { word: 'TREES', hint: 'Woody plants that produce oxygen', level: 1 },
+            { word: 'WASTE', hint: 'Unwanted or unusable materials', level: 1 },
+            { word: 'GREEN', hint: 'Color associated with nature', level: 2 },
+            { word: 'EARTH', hint: 'Our home planet', level: 2 },
+            { word: 'CLEAN', hint: 'Free from pollution', level: 2 },
+            { word: 'PLANT', hint: 'Living organism that photosynthesizes', level: 2 },
+            { word: 'WATER', hint: 'Essential liquid for life', level: 3 },
+            { word: 'FRESH', hint: 'Not polluted or contaminated', level: 3 },
+            { word: 'WINDS', hint: 'Moving air used for energy', level: 3 },
+            { word: 'CORAL', hint: 'Marine organisms forming reefs', level: 3 },
+            { word: 'OZONE', hint: 'Protective layer in atmosphere', level: 4 },
+            { word: 'BIOME', hint: 'Large ecological area', level: 4 },
+            { word: 'FUNGI', hint: 'Decomposer organisms', level: 4 },
+            { word: 'MARSH', hint: 'Wetland ecosystem', level: 4 },
+            { word: 'SMOG', hint: 'Air pollution in cities', level: 5 },
+            { word: 'ALGAE', hint: 'Simple aquatic organisms', level: 5 },
+            
+            // Level 6-10: Intermediate Terms
+            { word: 'CARBON', hint: 'Element in greenhouse gases', level: 6 },
+            { word: 'FOSSIL', hint: 'Ancient fuel source', level: 6 },
+            { word: 'TUNDRA', hint: 'Cold, treeless biome', level: 7 },
+            { word: 'METHANE', hint: 'Greenhouse gas from livestock', level: 7 },
+            { word: 'HABITAT', hint: 'Natural home of organisms', level: 8 },
+            { word: 'EROSION', hint: 'Wearing away of soil', level: 8 },
+            { word: 'COMPOST', hint: 'Organic waste recycling', level: 9 },
+            { word: 'GLACIER', hint: 'Large mass of ice', level: 9 },
+            { word: 'PRAIRIE', hint: 'Grassland ecosystem', level: 10 },
+            { word: 'THERMAL', hint: 'Heat-based energy', level: 10 },
+            
+            // Level 11-15: Advanced Terms
+            { word: 'BIOMASS', hint: 'Organic matter for energy', level: 11 },
+            { word: 'ECOLOGY', hint: 'Study of ecosystems', level: 11 },
+            { word: 'MONSOON', hint: 'Seasonal wind pattern', level: 12 },
+            { word: 'AQUIFER', hint: 'Underground water source', level: 12 },
+            { word: 'SAVANNA', hint: 'Tropical grassland', level: 13 },
+            { word: 'ESTUARY', hint: 'Where river meets sea', level: 13 },
+            { word: 'CANOPY', hint: 'Forest tree tops', level: 14 },
+            { word: 'TAIGA', hint: 'Northern forest biome', level: 14 },
+            { word: 'DELTA', hint: 'River mouth formation', level: 15 },
+            { word: 'FJORD', hint: 'Narrow inlet of sea', level: 15 },
+            
+            // Level 16-20: Expert Terms
+            { word: 'ALBEDO', hint: 'Surface reflectivity', level: 16 },
+            { word: 'BIOTIC', hint: 'Living ecosystem factors', level: 16 },
+            { word: 'HUMUS', hint: 'Decomposed organic matter', level: 17 },
+            { word: 'PELAGIC', hint: 'Open ocean zone', level: 17 },
+            { word: 'BENTHIC', hint: 'Ocean floor zone', level: 18 },
+            { word: 'LITTORAL', hint: 'Shore ecosystem zone', level: 18 },
+            { word: 'XEROPHYTE', hint: 'Desert-adapted plant', level: 19 },
+            { word: 'EPIPHYTE', hint: 'Plant growing on others', level: 19 },
+            { word: 'MYCORRHIZA', hint: 'Root-fungus partnership', level: 20 },
+            { word: 'PEDOSPHERE', hint: 'Earths soil layer', level: 20 }
+        ];
+        function showProfile() {
+    if (currentUser) {
+        document.getElementById('profileName').textContent = currentUser.name;
+        document.getElementById('profileEmail').textContent = currentUser.email;
+        document.getElementById('profileInstitution').textContent = currentUser.institution;
+        document.getElementById('profileGrade').textContent = currentUser.grade;
+        document.getElementById('profilePoints').textContent = currentUser.totalScore || 0;
+        document.getElementById('profileLevel').textContent = currentUser.level || 1;
+    }
+    document.getElementById('profileModal').classList.remove('hidden');
+}
+
+function logoutUser() {
+    if (currentUser) {
+        // Save the latest user data back to localStorage
+        localStorage.setItem('ecoQuestUser', JSON.stringify(currentUser));
+    }
+
+    // Clear active session but keep stored data
+    currentUser = null;
+
+    // Hide dashboard and profile
+    document.getElementById('dashboard').classList.add('hidden');
+    document.getElementById('profileModal').classList.add('hidden');
+
+    // Show login screen again
+    document.getElementById('loginScreen').classList.remove('hidden');
+}
+
+
+
+function closeProfile() {
+    document.getElementById('profileModal').classList.add('hidden');
+}
+
+
+        const quizQuestions = [
+            // Level 1-5: Basic Environmental Knowledge
+            {
+                question: "What percentage of Earth's water is freshwater?",
+                options: ["97%", "50%", "25%", "3%"],
+                correct: 3,
+                explanation: "Only about 3% of Earth's water is freshwater, and most of that is frozen in ice caps and glaciers.",
+                level: 1
+            },
+            {
+                question: "Which gas is primarily responsible for global warming?",
+                options: ["Oxygen", "Carbon Dioxide", "Nitrogen", "Hydrogen"],
+                correct: 1,
+                explanation: "Carbon dioxide is the primary greenhouse gas responsible for global warming.",
+                level: 1
+            },
+            {
+                question: "What do plants need to make their own food?",
+                options: ["Soil only", "Water only", "Sunlight, water, and CO2", "Air only"],
+                correct: 2,
+                explanation: "Plants use photosynthesis, which requires sunlight, water, and carbon dioxide to make food.",
+                level: 2
+            },
+            {
+                question: "Which of these is a renewable energy source?",
+                options: ["Coal", "Oil", "Solar", "Natural Gas"],
+                correct: 2,
+                explanation: "Solar energy is renewable because the sun provides continuous energy.",
+                level: 2
+            },
+            {
+                question: "What is recycling?",
+                options: ["Throwing away trash", "Making new products from old materials", "Burning waste", "Burying waste"],
+                correct: 1,
+                explanation: "Recycling means processing used materials to make new products.",
+                level: 3
+            },
+            {
+                question: "How long does it take for a plastic bottle to decompose?",
+                options: ["1 year", "10 years", "100 years", "450+ years"],
+                correct: 3,
+                explanation: "Plastic bottles can take 450+ years to decompose in landfills.",
+                level: 3
+            },
+            {
+                question: "What is the largest source of ocean pollution?",
+                options: ["Oil spills", "Plastic waste", "Chemical runoff", "Sewage"],
+                correct: 1,
+                explanation: "Plastic waste is the largest source of ocean pollution, harming marine life.",
+                level: 4
+            },
+            {
+                question: "Which layer of atmosphere protects us from UV rays?",
+                options: ["Troposphere", "Stratosphere", "Ozone layer", "Mesosphere"],
+                correct: 2,
+                explanation: "The ozone layer in the stratosphere protects Earth from harmful UV radiation.",
+                level: 4
+            },
+            {
+                question: "What causes acid rain?",
+                options: ["Too much oxygen", "Sulfur and nitrogen compounds", "Carbon dioxide only", "Water vapor"],
+                correct: 1,
+                explanation: "Acid rain is caused by sulfur dioxide and nitrogen oxides mixing with water in the atmosphere.",
+                level: 5
+            },
+            {
+                question: "Which renewable energy source is most widely used globally?",
+                options: ["Solar", "Wind", "Hydroelectric", "Geothermal"],
+                correct: 2,
+                explanation: "Hydroelectric power is currently the most widely used renewable energy source globally.",
+                level: 5
+            },
+            
+            // Level 6-10: Intermediate Environmental Science
+            {
+                question: "What is biodiversity?",
+                options: ["Number of trees", "Variety of life forms", "Amount of water", "Air quality"],
+                correct: 1,
+                explanation: "Biodiversity refers to the variety of plant and animal life in ecosystems.",
+                level: 6
+            },
+            {
+                question: "Which biome has the highest biodiversity?",
+                options: ["Desert", "Tundra", "Tropical rainforest", "Grassland"],
+                correct: 2,
+                explanation: "Tropical rainforests contain about 50% of all known species despite covering only 6% of Earth's surface.",
+                level: 6
+            },
+            {
+                question: "What is the greenhouse effect?",
+                options: ["Cooling of Earth", "Trapping of heat in atmosphere", "Destruction of plants", "Ocean warming only"],
+                correct: 1,
+                explanation: "The greenhouse effect occurs when gases in the atmosphere trap heat from the sun.",
+                level: 7
+            },
+            {
+                question: "Which gas has the highest global warming potential?",
+                options: ["Carbon dioxide", "Methane", "Nitrous oxide", "Sulfur hexafluoride"],
+                correct: 3,
+                explanation: "Sulfur hexafluoride has a global warming potential 23,500 times greater than CO2.",
+                level: 7
+            },
+            {
+                question: "What is eutrophication?",
+                options: ["Water purification", "Excess nutrients in water", "Ocean acidification", "Water evaporation"],
+                correct: 1,
+                explanation: "Eutrophication occurs when water bodies receive excess nutrients, causing algae blooms.",
+                level: 8
+            },
+            {
+                question: "Which process removes CO2 from the atmosphere?",
+                options: ["Respiration", "Photosynthesis", "Combustion", "Decomposition"],
+                correct: 1,
+                explanation: "Photosynthesis removes CO2 from the atmosphere and converts it to oxygen and glucose.",
+                level: 8
+            },
+            {
+                question: "What is the main cause of coral bleaching?",
+                options: ["Cold water", "Ocean warming", "Too much oxygen", "Lack of sunlight"],
+                correct: 1,
+                explanation: "Rising ocean temperatures cause corals to expel symbiotic algae, leading to bleaching.",
+                level: 9
+            },
+            {
+                question: "Which country produces the most renewable energy?",
+                options: ["USA", "Germany", "China", "Japan"],
+                correct: 2,
+                explanation: "China leads the world in renewable energy production, particularly in solar and wind.",
+                level: 9
+            },
+            {
+                question: "What is carbon sequestration?",
+                options: ["Releasing carbon", "Storing carbon long-term", "Burning carbon", "Trading carbon"],
+                correct: 1,
+                explanation: "Carbon sequestration is the process of capturing and storing atmospheric CO2.",
+                level: 10
+            },
+            {
+                question: "Which ecosystem stores the most carbon?",
+                options: ["Forests", "Oceans", "Grasslands", "Wetlands"],
+                correct: 1,
+                explanation: "Oceans are the largest carbon reservoir, storing about 50 times more carbon than the atmosphere.",
+                level: 10
+            },
+            
+            // Level 11-15: Advanced Environmental Issues
+            {
+                question: "What is the albedo effect?",
+                options: ["Ocean currents", "Surface reflectivity", "Wind patterns", "Soil composition"],
+                correct: 1,
+                explanation: "Albedo is the measure of how much light a surface reflects back to space.",
+                level: 11
+            },
+            {
+                question: "Which feedback loop accelerates climate change?",
+                options: ["Ice-albedo feedback", "Cloud formation", "Ocean circulation", "Mountain formation"],
+                correct: 0,
+                explanation: "As ice melts, darker surfaces absorb more heat, causing more melting in a positive feedback loop.",
+                level: 11
+            },
+            {
+                question: "What is bioaccumulation?",
+                options: ["Species evolution", "Toxin concentration in organisms", "Population growth", "Habitat expansion"],
+                correct: 1,
+                explanation: "Bioaccumulation is the buildup of toxic substances in organisms over time.",
+                level: 12
+            },
+            {
+                question: "Which phenomenon causes seasonal weather patterns?",
+                options: ["Ocean tides", "Earth's axial tilt", "Moon phases", "Solar flares"],
+                correct: 1,
+                explanation: "Earth's 23.5-degree axial tilt causes seasonal variations in solar radiation.",
+                level: 12
+            },
+            {
+                question: "What is the thermohaline circulation?",
+                options: ["Atmospheric winds", "Ocean current system", "Tectonic movement", "Magnetic field"],
+                correct: 1,
+                explanation: "Thermohaline circulation is the global ocean current system driven by temperature and salinity differences.",
+                level: 13
+            },
+            {
+                question: "Which process creates soil from rock?",
+                options: ["Erosion", "Weathering", "Sedimentation", "Crystallization"],
+                correct: 1,
+                explanation: "Weathering breaks down rocks into smaller particles that eventually form soil.",
+                level: 13
+            },
+            {
+                question: "What is the nitrogen cycle's limiting step?",
+                options: ["Nitrogen fixation", "Nitrification", "Denitrification", "Ammonification"],
+                correct: 0,
+                explanation: "Nitrogen fixation is often the limiting step as few organisms can convert atmospheric N2.",
+                level: 14
+            },
+            {
+                question: "Which biome has permafrost?",
+                options: ["Temperate forest", "Tundra", "Savanna", "Desert"],
+                correct: 1,
+                explanation: "Tundra biomes are characterized by permanently frozen subsoil called permafrost.",
+                level: 14
+            },
+            {
+                question: "What causes El Niño events?",
+                options: ["Solar activity", "Ocean temperature changes", "Volcanic eruptions", "Deforestation"],
+                correct: 1,
+                explanation: "El Niño is caused by warming of Pacific Ocean surface temperatures.",
+                level: 15
+            },
+            {
+                question: "Which gas depletes the ozone layer?",
+                options: ["Carbon dioxide", "Methane", "Chlorofluorocarbons", "Water vapor"],
+                correct: 2,
+                explanation: "CFCs release chlorine atoms that catalytically destroy ozone molecules.",
+                level: 15
+            },
+            
+            // Level 16-20: Expert Environmental Science
+            {
+                question: "What is the Keeling Curve?",
+                options: ["Temperature measurements", "CO2 concentration data", "Sea level changes", "Species extinction rates"],
+                correct: 1,
+                explanation: "The Keeling Curve shows the continuous measurement of atmospheric CO2 since 1958.",
+                level: 16
+            },
+            {
+                question: "Which tipping point could cause rapid climate change?",
+                options: ["Arctic sea ice loss", "Amazon rainforest dieback", "Permafrost thaw", "All of the above"],
+                correct: 3,
+                explanation: "Multiple tipping points could trigger cascading effects and rapid climate change.",
+                level: 16
+            },
+            {
+                question: "What is ocean acidification's main cause?",
+                options: ["Plastic pollution", "CO2 absorption", "Industrial waste", "Oil spills"],
+                correct: 1,
+                explanation: "Oceans absorb CO2, forming carbonic acid and lowering ocean pH.",
+                level: 17
+            },
+            {
+                question: "Which process drives plate tectonics?",
+                options: ["Solar radiation", "Mantle convection", "Gravitational pull", "Magnetic fields"],
+                correct: 1,
+                explanation: "Convection currents in Earth's mantle drive the movement of tectonic plates.",
+                level: 17
+            },
+            {
+                question: "What is the AMOC?",
+                options: ["Atmospheric monitoring", "Atlantic circulation system", "Arctic ice measurement", "Algae monitoring"],
+                correct: 1,
+                explanation: "AMOC (Atlantic Meridional Overturning Circulation) is a major ocean current system.",
+                level: 18
+            },
+            {
+                question: "Which isotope is used to study past climates?",
+                options: ["Carbon-12", "Oxygen-18", "Nitrogen-14", "Hydrogen-1"],
+                correct: 1,
+                explanation: "Oxygen-18 ratios in ice cores and fossils reveal past temperature conditions.",
+                level: 18
+            },
+            {
+                question: "What is the Anthropocene?",
+                options: ["Ice age period", "Human-dominated geological epoch", "Extinction event", "Climate cycle"],
+                correct: 1,
+                explanation: "The Anthropocene is the proposed geological epoch dominated by human impact.",
+                level: 19
+            },
+            {
+                question: "Which feedback mechanism could stabilize climate?",
+                options: ["Ice-albedo feedback", "Water vapor feedback", "Cloud feedback", "Permafrost feedback"],
+                correct: 2,
+                explanation: "Increased cloud cover could reflect more sunlight, providing negative feedback.",
+                level: 19
+            },
+            {
+                question: "What is the planetary boundary framework?",
+                options: ["Space exploration limits", "Earth system safe operating limits", "Ocean depth measurements", "Atmospheric layers"],
+                correct: 1,
+                explanation: "Planetary boundaries define safe operating limits for Earth's life support systems.",
+                level: 20
+            },
+            {
+                question: "Which geoengineering approach targets solar radiation?",
+                options: ["Carbon capture", "Ocean fertilization", "Stratospheric aerosols", "Reforestation"],
+                correct: 2,
+                explanation: "Solar radiation management using stratospheric aerosols could reflect sunlight.",
+                level: 20
+            }
+        ];
+
+        const wasteItems = [
+            // Level 1-5: Basic Items
+            { name: 'Plastic Bottle', emoji: '🍼', type: 'recyclable', level: 1 },
+            { name: 'Banana Peel', emoji: '🍌', type: 'non-recyclable', level: 1 },
+            { name: 'Aluminum Can', emoji: '🥤', type: 'recyclable', level: 1 },
+            { name: 'Apple Core', emoji: '🍎', type: 'non-recyclable', level: 1 },
+            { name: 'Newspaper', emoji: '📰', type: 'recyclable', level: 2 },
+            { name: 'Tissue Paper', emoji: '🧻', type: 'non-recyclable', level: 2 },
+            { name: 'Glass Jar', emoji: '🫙', type: 'recyclable', level: 2 },
+            { name: 'Food Scraps', emoji: '🥬', type: 'non-recyclable', level: 2 },
+            { name: 'Cardboard Box', emoji: '📦', type: 'recyclable', level: 3 },
+            { name: 'Pizza Box', emoji: '🍕', type: 'non-recyclable', level: 3 },
+            { name: 'Metal Spoon', emoji: '🥄', type: 'recyclable', level: 3 },
+            { name: 'Diaper', emoji: '👶', type: 'non-recyclable', level: 3 },
+            { name: 'Wine Bottle', emoji: '🍷', type: 'recyclable', level: 4 },
+            { name: 'Cotton Swab', emoji: '🧽', type: 'non-recyclable', level: 4 },
+            { name: 'Plastic Bag', emoji: '🛍️', type: 'recyclable', level: 4 },
+            { name: 'Ceramic Mug', emoji: '☕', type: 'non-recyclable', level: 4 },
+            { name: 'Tin Can', emoji: '🥫', type: 'recyclable', level: 5 },
+            { name: 'Cigarette Butt', emoji: '🚬', type: 'non-recyclable', level: 5 },
+            
+            // Level 6-10: Intermediate Items
+            { name: 'Milk Carton', emoji: '🥛', type: 'recyclable', level: 6 },
+            { name: 'Styrofoam Cup', emoji: '🥤', type: 'non-recyclable', level: 6 },
+            { name: 'Magazine', emoji: '📖', type: 'recyclable', level: 6 },
+            { name: 'Rubber Glove', emoji: '🧤', type: 'non-recyclable', level: 6 },
+            { name: 'Steel Can', emoji: '🛢️', type: 'recyclable', level: 7 },
+            { name: 'Wax Paper', emoji: '📄', type: 'non-recyclable', level: 7 },
+            { name: 'Glass Bottle', emoji: '🍾', type: 'recyclable', level: 7 },
+            { name: 'Dental Floss', emoji: '🦷', type: 'non-recyclable', level: 7 },
+            { name: 'Cereal Box', emoji: '🥣', type: 'recyclable', level: 8 },
+            { name: 'Cat Litter', emoji: '🐱', type: 'non-recyclable', level: 8 },
+            { name: 'Aluminum Foil', emoji: '🍽️', type: 'recyclable', level: 8 },
+            { name: 'Makeup Wipe', emoji: '💄', type: 'non-recyclable', level: 8 },
+            { name: 'Juice Box', emoji: '🧃', type: 'recyclable', level: 9 },
+            { name: 'Broken Glass', emoji: '💔', type: 'non-recyclable', level: 9 },
+            { name: 'Paper Bag', emoji: '🛍️', type: 'recyclable', level: 9 },
+            { name: 'Chewing Gum', emoji: '🍬', type: 'non-recyclable', level: 9 },
+            { name: 'Copper Wire', emoji: '🔌', type: 'recyclable', level: 10 },
+            { name: 'Disposable Razor', emoji: '🪒', type: 'non-recyclable', level: 10 },
+            
+            // Level 11-15: Advanced Items
+            { name: 'Computer Parts', emoji: '💻', type: 'recyclable', level: 11 },
+            { name: 'Medical Waste', emoji: '💉', type: 'non-recyclable', level: 11 },
+            { name: 'Car Battery', emoji: '🔋', type: 'recyclable', level: 11 },
+            { name: 'Paint Can', emoji: '🎨', type: 'non-recyclable', level: 11 },
+            { name: 'Cell Phone', emoji: '📱', type: 'recyclable', level: 12 },
+            { name: 'Asbestos', emoji: '🏠', type: 'non-recyclable', level: 12 },
+            { name: 'Scrap Metal', emoji: '⚙️', type: 'recyclable', level: 12 },
+            { name: 'Motor Oil', emoji: '🛢️', type: 'non-recyclable', level: 12 },
+            { name: 'LED Bulb', emoji: '💡', type: 'recyclable', level: 13 },
+            { name: 'Pesticide Container', emoji: '🧪', type: 'non-recyclable', level: 13 },
+            { name: 'Printer Cartridge', emoji: '🖨️', type: 'recyclable', level: 13 },
+            { name: 'Fluorescent Bulb', emoji: '💡', type: 'non-recyclable', level: 13 },
+            { name: 'Solar Panel', emoji: '☀️', type: 'recyclable', level: 14 },
+            { name: 'Radioactive Material', emoji: '☢️', type: 'non-recyclable', level: 14 },
+            { name: 'Wind Turbine Blade', emoji: '💨', type: 'recyclable', level: 14 },
+            { name: 'Chemical Solvent', emoji: '🧪', type: 'non-recyclable', level: 14 },
+            { name: 'Lithium Battery', emoji: '🔋', type: 'recyclable', level: 15 },
+            { name: 'Biohazard Waste', emoji: '☣️', type: 'non-recyclable', level: 15 },
+            
+            // Level 16-20: Expert Items
+            { name: 'Rare Earth Metals', emoji: '💎', type: 'recyclable', level: 16 },
+            { name: 'Nuclear Waste', emoji: '☢️', type: 'non-recyclable', level: 16 },
+            { name: 'Carbon Fiber', emoji: '🏎️', type: 'recyclable', level: 16 },
+            { name: 'Contaminated Soil', emoji: '🌱', type: 'non-recyclable', level: 16 },
+            { name: 'Satellite Components', emoji: '🛰️', type: 'recyclable', level: 17 },
+            { name: 'Toxic Chemicals', emoji: '☠️', type: 'non-recyclable', level: 17 },
+            { name: 'Graphene Material', emoji: '⚛️', type: 'recyclable', level: 17 },
+            { name: 'Pharmaceutical Waste', emoji: '💊', type: 'non-recyclable', level: 17 },
+            { name: 'Quantum Processors', emoji: '🔬', type: 'recyclable', level: 18 },
+            { name: 'Nanomaterials', emoji: '🔬', type: 'non-recyclable', level: 18 },
+            { name: 'Superconductors', emoji: '⚡', type: 'recyclable', level: 18 },
+            { name: 'Biological Agents', emoji: '🦠', type: 'non-recyclable', level: 18 },
+            { name: 'Space Debris', emoji: '🚀', type: 'recyclable', level: 19 },
+            { name: 'Antimatter Waste', emoji: '⚛️', type: 'non-recyclable', level: 19 },
+            { name: 'Fusion Reactor Parts', emoji: '⚛️', type: 'recyclable', level: 19 },
+            { name: 'Exotic Matter', emoji: '🌌', type: 'non-recyclable', level: 19 },
+            { name: 'Metamaterials', emoji: '🔮', type: 'recyclable', level: 20 },
+            { name: 'Dark Matter Residue', emoji: '🌑', type: 'non-recyclable', level: 20 }
+        ];
+
+        // Login functionality
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const userData = {
+                name: document.getElementById('fullName').value,
+                email: document.getElementById('email').value,
+                institution: document.getElementById('institution').value,
+                grade: document.getElementById('grade').value,
+                totalScore: 0,
+                level: 1,
+                gamesPlayed: 0
+            };
+            
+            currentUser = userData;
+            localStorage.setItem('ecoQuestUser', JSON.stringify(userData));
+            
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('dashboard').classList.remove('hidden');
+            document.getElementById('welcomeMessage').textContent = `Welcome back, ${userData.name}!`;
+            
+            loadUserProgress();
+            updateLeaderboard();
+        });
+
+        // Check if user is already logged in
+        window.addEventListener('load', function() {
+            const savedUser = localStorage.getItem('ecoQuestUser');
+            if (savedUser) {
+                currentUser = JSON.parse(savedUser);
+                document.getElementById('loginScreen').classList.add('hidden');
+                document.getElementById('dashboard').classList.remove('hidden');
+                document.getElementById('welcomeMessage').textContent = `Welcome back, ${currentUser.name}!`;
+                loadUserProgress();
+                updateLeaderboard();
+            }
+        });
+
+        // Navigation
+        function showSection(section) {
+            // Hide all sections
+            document.getElementById('gamesSection').classList.add('hidden');
+            document.getElementById('progressSection').classList.add('hidden');
+            document.getElementById('leaderboardSection').classList.add('hidden');
+            
+            // Show selected section
+            document.getElementById(section + 'Section').classList.remove('hidden');
+            
+            // Update nav buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('border-white', 'bg-green-700');
+            });
+            event.target.classList.add('border-white', 'bg-green-700');
+            
+            if (section === 'progress') {
+                updateProgressDisplay();
+            } else if (section === 'leaderboard') {
+                updateLeaderboard();
+            }
+        }
+
+        // Game launching
+        function startGame(gameType) {
+            document.getElementById(gameType + 'Modal').classList.remove('hidden');
+            
+            switch(gameType) {
+                case 'wordle':
+                    initWordle();
+                    break;
+                case 'quiz':
+                    initQuiz();
+                    break;
+                case 'puzzle':
+                    initPuzzle();
+                    break;
+                case 'sorting':
+                    initSorting();
+                    break;
+            }
+        }
+
+        function closeGame() {
+            document.querySelectorAll('[id$="Modal"]').forEach(modal => {
+                modal.classList.add('hidden');
+            });
+        }
+
+        // Wordle Game
+        let currentWordleWord = '';
+        let currentWordleAttempt = 0;
+        let wordleGrid = [];
+
+        function initWordle() {
+            const currentLevel = gameData.wordle.currentLevel;
+            const levelWords = ecoWords.filter(word => word.level === currentLevel);
+            
+            if (levelWords.length === 0) {
+                // If no words for current level, use any word from available levels
+                const availableWords = ecoWords.filter(word => word.level <= currentLevel);
+                currentWordleWord = availableWords[Math.floor(Math.random() * availableWords.length)];
+            } else {
+                currentWordleWord = levelWords[Math.floor(Math.random() * levelWords.length)];
+            }
+            
+            document.getElementById('wordleHint').textContent = currentWordleWord.hint;
+            document.getElementById('wordleLevel').textContent = currentLevel;
+            currentWordleAttempt = 0;
+            
+            createWordleGrid();
+        }
+
+        function createWordleGrid() {
+            const grid = document.getElementById('wordleGrid');
+            grid.innerHTML = '';
+            wordleGrid = [];
+            
+            for (let i = 0; i < 6; i++) {
+                wordleGrid[i] = [];
+                for (let j = 0; j < 5; j++) {
+                    const cell = document.createElement('input');
+                    cell.type = 'text';
+                    cell.maxLength = 1;
+                    cell.className = 'w-12 h-12 border-2 border-gray-300 rounded text-center font-bold text-lg uppercase';
+                    cell.addEventListener('input', handleWordleInput);
+                    cell.addEventListener('keydown', handleWordleKeydown);
+                    cell.dataset.row = i;
+                    cell.dataset.col = j;
+                    grid.appendChild(cell);
+                    wordleGrid[i][j] = cell;
+                }
+            }
+            
+            wordleGrid[0][0].focus();
+        }
+
+        function handleWordleInput(e) {
+            const row = parseInt(e.target.dataset.row);
+            const col = parseInt(e.target.dataset.col);
+            
+            if (e.target.value && col < 4) {
+                wordleGrid[row][col + 1].focus();
+            }
+        }
+
+        function handleWordleKeydown(e) {
+            const row = parseInt(e.target.dataset.row);
+            const col = parseInt(e.target.dataset.col);
+            
+            if (e.key === 'Backspace' && !e.target.value && col > 0) {
+                wordleGrid[row][col - 1].focus();
+            } else if (e.key === 'Enter') {
+                checkWordleRow(row);
+            }
+        }
+
+        function checkWordleRow(row) {
+            if (row !== currentWordleAttempt) return;
+            
+            let guess = '';
+            for (let col = 0; col < 5; col++) {
+                guess += wordleGrid[row][col].value.toUpperCase();
+            }
+            
+            if (guess.length !== 5) {
+                alert('Please enter a complete 5-letter word!');
+                return;
+            }
+            
+            // Check each letter
+            for (let col = 0; col < 5; col++) {
+                const cell = wordleGrid[row][col];
+                const letter = guess[col];
+                
+                if (letter === currentWordleWord.word[col]) {
+                    cell.className = cell.className.replace('border-gray-300', 'border-green-500 bg-green-500 text-white');
+                } else if (currentWordleWord.word.includes(letter)) {
+                    cell.className = cell.className.replace('border-gray-300', 'border-yellow-500 bg-yellow-500 text-white');
+                } else {
+                    cell.className = cell.className.replace('border-gray-300', 'border-gray-500 bg-gray-500 text-white');
+                }
+                
+                cell.disabled = true;
+            }
+            
+            if (guess === currentWordleWord.word) {
+                setTimeout(() => {
+                    const levelUp = gameData.wordle.currentLevel < gameData.wordle.maxLevel;
+                    if (levelUp) {
+                        gameData.wordle.currentLevel++;
+                        alert(`🎉 Congratulations! You guessed the word!\n🚀 Level Up! Now on Level ${gameData.wordle.currentLevel}`);
+                    } else {
+                        alert('🎉 Congratulations! You guessed the word!\n👑 You\'ve mastered all Wordle levels!');
+                    }
+                    addScore('wordle', 50 + (gameData.wordle.currentLevel * 10));
+                    gameData.wordle.played++;
+                    gameData.wordle.won++;
+                    gameData.wordle.totalScore += 50 + (gameData.wordle.currentLevel * 10);
+                    saveGameData();
+                }, 500);
+            } else if (currentWordleAttempt === 5) {
+                setTimeout(() => {
+                    alert(`Game over! The word was: ${currentWordleWord.word}\nTry again to advance to the next level!`);
+                    gameData.wordle.played++;
+                    saveGameData();
+                }, 500);
+            } else {
+                currentWordleAttempt++;
+                if (currentWordleAttempt < 6) {
+                    wordleGrid[currentWordleAttempt][0].focus();
+                }
+            }
+        }
+
+        function resetWordle() {
+            initWordle();
+        }
+
+        // Quiz Game
+        let currentQuizQuestions = [];
+        let currentQuestionIndex = 0;
+        let quizScore = 0;
+
+        function initQuiz() {
+            const currentLevel = gameData.quiz.currentLevel;
+            const levelQuestions = quizQuestions.filter(q => q.level === currentLevel);
+            
+            // If no questions for current level, use questions from available levels
+            if (levelQuestions.length === 0) {
+                const availableQuestions = quizQuestions.filter(q => q.level <= currentLevel);
+                currentQuizQuestions = availableQuestions.sort(() => Math.random() - 0.5).slice(0, 5);
+            } else {
+                currentQuizQuestions = levelQuestions.sort(() => Math.random() - 0.5).slice(0, Math.min(5, levelQuestions.length));
+            }
+            
+            currentQuestionIndex = 0;
+            quizScore = 0;
+            
+            document.getElementById('quizContent').classList.remove('hidden');
+            document.getElementById('quizResults').classList.add('hidden');
+            document.getElementById('totalQuestions').textContent = currentQuizQuestions.length;
+            
+            showQuestion();
+        }
+
+        function showQuestion() {
+            const question = currentQuizQuestions[currentQuestionIndex];
+            document.getElementById('questionNumber').textContent = currentQuestionIndex + 1;
+            document.getElementById('quizLevel').textContent = gameData.quiz.currentLevel;
+            document.getElementById('questionText').textContent = question.question;
+            
+            const optionsContainer = document.getElementById('answerOptions');
+            optionsContainer.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const button = document.createElement('button');
+                button.className = 'w-full p-4 text-left border-2 border-gray-200 rounded-lg hover:border-blue-500 hover:bg-blue-50 transition-all';
+                button.textContent = option;
+                button.onclick = () => selectAnswer(index, button);
+                optionsContainer.appendChild(button);
+            });
+            
+            document.getElementById('nextBtn').classList.add('hidden');
+            document.getElementById('quizHintBtn').classList.remove('hidden');
+        }
+
+        function selectAnswer(selectedIndex, buttonElement) {
+            const question = currentQuizQuestions[currentQuestionIndex];
+            const buttons = document.querySelectorAll('#answerOptions button');
+            
+            buttons.forEach((btn, index) => {
+                btn.disabled = true;
+                if (index === question.correct) {
+                    btn.className = btn.className.replace('border-gray-200', 'border-green-500 bg-green-100');
+                    btn.innerHTML += ' ✅';
+                } else if (index === selectedIndex && index !== question.correct) {
+                    btn.className = btn.className.replace('border-gray-200', 'border-red-500 bg-red-100');
+                    btn.innerHTML += ' ❌';
+                }
+            });
+            
+            if (selectedIndex === question.correct) {
+                quizScore++;
+                buttonElement.classList.add('bounce');
+            }
+            
+            // Hide hint button after answer is selected
+            document.getElementById('quizHintBtn').classList.add('hidden');
+            
+            setTimeout(() => {
+                const resultMessage = selectedIndex === question.correct ? 
+                    `✅ Correct! ${question.explanation}` : 
+                    `❌ Incorrect. ${question.explanation}`;
+                alert(resultMessage);
+                document.getElementById('nextBtn').classList.remove('hidden');
+            }, 1000);
+        }
+
+        function nextQuestion() {
+            currentQuestionIndex++;
+            
+            if (currentQuestionIndex < currentQuizQuestions.length) {
+                showQuestion();
+            } else {
+                showQuizResults();
+            }
+        }
+
+        function showQuizResults() {
+            document.getElementById('quizContent').classList.add('hidden');
+            document.getElementById('quizResults').classList.remove('hidden');
+            
+            const percentage = Math.round((quizScore / currentQuizQuestions.length) * 100);
+            document.getElementById('quizScore').textContent = `${quizScore}/${currentQuizQuestions.length} (${percentage}%)`;
+            
+            const currentLevel = gameData.quiz.currentLevel;
+            const points = quizScore * (30 + (currentLevel * 5));
+            
+            // Level up if score is 60% or higher and not at max level
+            if (percentage >= 60 && gameData.quiz.currentLevel < gameData.quiz.maxLevel) {
+                gameData.quiz.currentLevel++;
+                setTimeout(() => {
+                    alert(`🎉 Great job! You passed Level ${currentLevel}!\n🚀 Level Up! Now on Level ${gameData.quiz.currentLevel}`);
+                }, 1000);
+            } else if (percentage >= 60) {
+                setTimeout(() => {
+                    alert('🎉 Excellent work! You\'ve mastered all Quiz levels!\n👑 Quiz Master Achievement Unlocked!');
+                }, 1000);
+            }
+            
+            addScore('quiz', points);
+            gameData.quiz.played++;
+            if (percentage >= 60) gameData.quiz.won++;
+            gameData.quiz.totalScore += points;
+            saveGameData();
+        }
+
+        // Puzzle Game
+        let currentPuzzleWord = '';
+        let currentPuzzleAnswer = '';
+
+        function initPuzzle() {
+            newPuzzle();
+        }
+
+        function newPuzzle() {
+            const currentLevel = gameData.puzzle.currentLevel;
+            const levelWords = ecoWords.filter(word => word.level === currentLevel);
+            
+            let selectedWord;
+            if (levelWords.length === 0) {
+                // If no words for current level, use any word from available levels
+                const availableWords = ecoWords.filter(word => word.level <= currentLevel);
+                selectedWord = availableWords[Math.floor(Math.random() * availableWords.length)];
+            } else {
+                selectedWord = levelWords[Math.floor(Math.random() * levelWords.length)];
+            }
+            
+            currentPuzzleWord = selectedWord.word;
+            currentPuzzleAnswer = selectedWord.word;
+            
+            // Scramble the word
+            const scrambled = currentPuzzleWord.split('').sort(() => Math.random() - 0.5).join('');
+            document.getElementById('scrambledWord').textContent = scrambled;
+            document.getElementById('puzzleHint').textContent = selectedWord.hint;
+            document.getElementById('puzzleLevel').textContent = gameData.puzzle.currentLevel;
+            document.getElementById('puzzleAnswer').value = '';
+            document.getElementById('puzzleAnswer').focus();
+        }
+
+        function checkPuzzleAnswer() {
+            const userAnswer = document.getElementById('puzzleAnswer').value.toUpperCase();
+            
+            if (userAnswer === currentPuzzleAnswer) {
+                const currentLevel = gameData.puzzle.currentLevel;
+                const points = 40 + (currentLevel * 5);
+                
+                // Level up if not at max level
+                if (gameData.puzzle.currentLevel < gameData.puzzle.maxLevel) {
+                    gameData.puzzle.currentLevel++;
+                    alert(`🎉 Correct! Well done!\n🚀 Level Up! Now on Level ${gameData.puzzle.currentLevel}`);
+                } else {
+                    alert('🎉 Correct! You\'ve mastered all Puzzle levels!\n👑 Puzzle Master Achievement Unlocked!');
+                }
+                
+                addScore('puzzle', points);
+                gameData.puzzle.played++;
+                gameData.puzzle.won++;
+                gameData.puzzle.totalScore += points;
+                saveGameData();
+                newPuzzle();
+            } else {
+                alert('❌ Not quite right. Try again!');
+                document.getElementById('puzzleAnswer').focus();
+            }
+        }
+
+        // Waste Sorting Game
+        let sortingItems = [];
+        let sortingScore = 0;
+
+        function initSorting() {
+            newSortingGame();
+        }
+
+        function newSortingGame() {
+            const currentLevel = gameData.sorting.currentLevel;
+            const levelItems = wasteItems.filter(item => item.level === currentLevel);
+            
+            // If no items for current level, use items from available levels
+            if (levelItems.length === 0) {
+                const availableItems = wasteItems.filter(item => item.level <= currentLevel);
+                sortingItems = availableItems.sort(() => Math.random() - 0.5).slice(0, 10);
+            } else {
+                // Mix current level items with some from previous levels for variety
+                const previousItems = wasteItems.filter(item => item.level < currentLevel);
+                const mixedItems = [...levelItems, ...previousItems.slice(0, 6)];
+                sortingItems = mixedItems.sort(() => Math.random() - 0.5).slice(0, 10);
+            }
+            
+            sortingScore = 0;
+            
+            document.getElementById('sortingScore').textContent = sortingScore;
+            document.getElementById('itemsLeft').textContent = sortingItems.length;
+            document.getElementById('sortingLevel').textContent = gameData.sorting.currentLevel;
+            
+            // Clear bins
+            document.getElementById('recyclableBin').innerHTML = '';
+            document.getElementById('nonRecyclableBin').innerHTML = '';
+            
+            // Populate items to sort
+            const container = document.getElementById('itemsToSort');
+            container.innerHTML = '';
+            
+            sortingItems.forEach((item, index) => {
+                const itemElement = document.createElement('div');
+                itemElement.className = 'drag-item bg-white p-4 rounded-lg shadow-md cursor-grab text-center border-2 border-gray-200 hover:border-blue-400 transition-all';
+                itemElement.draggable = true;
+                itemElement.dataset.type = item.type;
+                itemElement.dataset.index = index;
+                itemElement.innerHTML = `
+                    <div class="text-3xl mb-2">${item.emoji}</div>
+                    <div class="text-sm font-medium">${item.name}</div>
+                `;
+                
+                itemElement.addEventListener('dragstart', handleDragStart);
+                container.appendChild(itemElement);
+            });
+            
+            // Setup drop zones
+            document.querySelectorAll('.drop-zone').forEach(zone => {
+                zone.addEventListener('dragover', handleDragOver);
+                zone.addEventListener('drop', handleDrop);
+                zone.addEventListener('dragenter', handleDragEnter);
+                zone.addEventListener('dragleave', handleDragLeave);
+            });
+        }
+
+        function handleDragStart(e) {
+            e.dataTransfer.setData('text/plain', e.target.dataset.index);
+            e.target.style.opacity = '0.5';
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+        }
+
+        function handleDragEnter(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('drag-over');
+        }
+
+        function handleDragLeave(e) {
+            e.currentTarget.classList.remove('drag-over');
+        }
+
+        let sortingMistakes = [];
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drag-over');
+            
+            const itemIndex = e.dataTransfer.getData('text/plain');
+            const item = sortingItems[itemIndex];
+            const dropZoneType = e.currentTarget.dataset.type;
+            
+            const draggedElement = document.querySelector(`[data-index="${itemIndex}"]`);
+            
+            if (item.type === dropZoneType) {
+                // Correct sorting
+                sortingScore += 10;
+                draggedElement.classList.add('bounce');
+                draggedElement.style.opacity = '1';
+                
+                // Move to correct bin
+                const binId = dropZoneType === 'recyclable' ? 'recyclableBin' : 'nonRecyclableBin';
+                document.getElementById(binId).appendChild(draggedElement);
+                draggedElement.className = 'bg-green-100 p-2 rounded text-center text-sm border border-green-300';
+                draggedElement.draggable = false;
+                
+                setTimeout(() => {
+                    draggedElement.classList.remove('bounce');
+                }, 1000);
+            } else {
+                // Incorrect sorting - track mistake
+                sortingMistakes.push({
+                    item: item.name,
+                    userChoice: dropZoneType,
+                    correct: item.type,
+                    explanation: getSortingExplanation(item)
+                });
+                
+                draggedElement.style.opacity = '1';
+                draggedElement.classList.add('bg-red-100', 'border-red-300');
+                setTimeout(() => {
+                    draggedElement.classList.remove('bg-red-100', 'border-red-300');
+                }, 1000);
+                return;
+            }
+            
+            // Update display
+            document.getElementById('sortingScore').textContent = sortingScore;
+            const itemsLeft = document.querySelectorAll('#itemsToSort .drag-item').length - 1;
+            document.getElementById('itemsLeft').textContent = itemsLeft;
+            
+            // Check if game is complete
+            if (itemsLeft === 0) {
+                setTimeout(() => {
+                    showSortingResults();
+                }, 1000);
+            }
+        }
+
+        function getSortingExplanation(item) {
+            const explanations = {
+                'Plastic Bottle': 'Clean plastic bottles are recyclable - rinse before recycling!',
+                'Banana Peel': 'Organic waste like fruit peels should be composted, not recycled.',
+                'Pizza Box': 'Greasy pizza boxes contaminate recycling - compost if clean areas exist.',
+                'Glass Jar': 'Glass containers are infinitely recyclable when clean.',
+                'Styrofoam Cup': 'Polystyrene foam is not recyclable in most programs.',
+                'Aluminum Can': 'Aluminum is highly recyclable and valuable - always recycle!',
+                'Tissue Paper': 'Used tissues contain germs and short fibers - not recyclable.',
+                'Cigarette Butt': 'Cigarette filters contain toxic chemicals and plastic - never recyclable.',
+                'Wax Paper': 'Wax coating prevents recycling - compost if food-grade wax.',
+                'Broken Glass': 'Broken glass is dangerous for workers - dispose in regular trash.',
+                'Medical Waste': 'Medical items require special hazardous waste disposal.',
+                'Paint Can': 'Paint cans contain toxic residue - take to hazardous waste facility.',
+                'Motor Oil': 'Used oil is toxic but can be recycled at auto shops.',
+                'Fluorescent Bulb': 'Contains mercury - requires special electronic waste disposal.',
+                'Nuclear Waste': 'Requires specialized containment and disposal facilities.',
+                'Antimatter Waste': 'Theoretical material requiring containment in magnetic fields.'
+            };
+            return explanations[item.name] || `${item.name} is ${item.type === 'recyclable' ? 'recyclable' : 'not recyclable'}.`;
+        }
+
+        function showSortingResults() {
+            const currentLevel = gameData.sorting.currentLevel;
+            const bonusPoints = currentLevel * 10;
+            const totalPoints = sortingScore + bonusPoints;
+            
+            let resultMessage = `🎯 Waste Sorting Complete!\n\nFinal Score: ${totalPoints} points (${bonusPoints} level bonus)\nCorrect: ${sortingScore/10} items\nMistakes: ${sortingMistakes.length} items\n\n`;
+            
+            if (sortingMistakes.length > 0) {
+                resultMessage += "❌ Items you got wrong:\n";
+                sortingMistakes.forEach(mistake => {
+                    resultMessage += `• ${mistake.item}: You put it in ${mistake.userChoice}, but it's ${mistake.correct}\n  💡 ${mistake.explanation}\n\n`;
+                });
+            }
+            
+            // Level up logic - fixed to actually progress
+            if (sortingScore >= 80 && gameData.sorting.currentLevel < gameData.sorting.maxLevel) {
+                gameData.sorting.currentLevel++;
+                resultMessage += `🚀 Level Up! Now on Level ${gameData.sorting.currentLevel}`;
+                gameData.sorting.won++;
+            } else if (sortingScore >= 80) {
+                resultMessage += `👑 You've mastered all Waste Sorting levels!`;
+                gameData.sorting.won++;
+            } else {
+                resultMessage += `Try to get 80+ points to advance to the next level!`;
+            }
+            
+            alert(resultMessage);
+            
+            addScore('sorting', totalPoints);
+            gameData.sorting.played++;
+            gameData.sorting.totalScore += totalPoints;
+            saveGameData();
+            
+            // Reset mistakes for next game
+            sortingMistakes = [];
+        }
+
+        // Score and progress management
+        function addScore(gameType, points) {
+            currentUser.totalScore += points;
+            currentUser.level = Math.floor(currentUser.totalScore / 200) + 1;
+            currentUser.gamesPlayed++;
+            
+            document.getElementById('userScore').textContent = currentUser.totalScore;
+            document.getElementById('userLevel').textContent = currentUser.level;
+            
+            localStorage.setItem('ecoQuestUser', JSON.stringify(currentUser));
+        }
+
+        function saveGameData() {
+            localStorage.setItem('ecoQuestGameData', JSON.stringify(gameData));
+            updateGameLevelDisplays();
+        }
+
+        function loadUserProgress() {
+            const savedGameData = localStorage.getItem('ecoQuestGameData');
+            if (savedGameData) {
+                gameData = JSON.parse(savedGameData);
+            }
+            
+            document.getElementById('userScore').textContent = currentUser.totalScore || 0;
+            document.getElementById('userLevel').textContent = currentUser.level || 1;
+            
+            updateGameLevelDisplays();
+        }
+        
+        function updateGameLevelDisplays() {
+            document.getElementById('wordleLevelDisplay').textContent = `Level ${gameData.wordle.currentLevel}/20`;
+            document.getElementById('quizLevelDisplay').textContent = `Level ${gameData.quiz.currentLevel}/20`;
+            document.getElementById('puzzleLevelDisplay').textContent = `Level ${gameData.puzzle.currentLevel}/20`;
+            document.getElementById('sortingLevelDisplay').textContent = `Level ${gameData.sorting.currentLevel}/20`;
+        }
+
+        function updateProgressDisplay() {
+            const totalGames = Object.values(gameData).reduce((sum, game) => sum + game.played, 0);
+            const totalScore = Object.values(gameData).reduce((sum, game) => sum + game.totalScore, 0);
+            const totalWins = Object.values(gameData).reduce((sum, game) => sum + game.won, 0);
+            
+            document.getElementById('gamesCompleted').textContent = totalGames;
+            document.getElementById('averageScore').textContent = totalGames > 0 ? Math.round((totalWins / totalGames) * 100) + '%' : '0%';
+            document.getElementById('currentStreak').textContent = Math.max(...Object.values(gameData).map(game => game.won));
+            
+            // Update game stats
+            const statsContainer = document.getElementById('gameStats');
+            statsContainer.innerHTML = '';
+            
+            const gameNames = { wordle: 'Eco Wordle', quiz: 'Quiz Challenge', puzzle: 'Eco Puzzle', sorting: 'Waste Sorting' };
+            
+            Object.entries(gameData).forEach(([gameType, data]) => {
+                const statDiv = document.createElement('div');
+                statDiv.className = 'flex justify-between items-center p-4 bg-gray-50 rounded-lg';
+                statDiv.innerHTML = `
+                    <div>
+                        <h4 class="font-semibold">${gameNames[gameType]}</h4>
+                        <p class="text-sm text-gray-600">Played: ${data.played} | Won: ${data.won}</p>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-lg font-bold text-green-600">${data.totalScore}</div>
+                        <div class="text-xs text-gray-500">Total Points</div>
+                    </div>
+                `;
+                statsContainer.appendChild(statDiv);
+            });
+        }
+
+        function updateLeaderboard() {
+            // Get all users from localStorage (in a real app, this would be from a server)
+            const allUsers = JSON.parse(localStorage.getItem('ecoLearnAllUsers') || '[]');
+            
+            // Add current user if not already in the list
+            const existingUserIndex = allUsers.findIndex(user => user.email === currentUser.email);
+            if (existingUserIndex >= 0) {
+                allUsers[existingUserIndex] = currentUser;
+            } else {
+                allUsers.push(currentUser);
+            }
+            
+            // Sort by total score
+            allUsers.sort((a, b) => (b.totalScore || 0) - (a.totalScore || 0));
+            
+            // Save updated list
+            localStorage.setItem('ecoLearnAllUsers', JSON.stringify(allUsers));
+            
+            // Display leaderboard
+            const leaderboardContainer = document.getElementById('leaderboardList');
+            leaderboardContainer.innerHTML = '';
+            
+            allUsers.slice(0, 10).forEach((user, index) => {
+                const position = index + 1;
+                const isCurrentUser = user.email === currentUser.email;
+                
+                const userDiv = document.createElement('div');
+                userDiv.className = `flex items-center justify-between p-4 rounded-lg ${isCurrentUser ? 'bg-green-100 border-2 border-green-300' : 'bg-gray-50'}`;
+                
+                let medal = '';
+                if (position === 1) medal = '🥇';
+                else if (position === 2) medal = '🥈';
+                else if (position === 3) medal = '🥉';
+                
+                userDiv.innerHTML = `
+                    <div class="flex items-center space-x-4">
+                        <div class="text-2xl font-bold ${isCurrentUser ? 'text-green-600' : 'text-gray-600'}">${medal || position}</div>
+                        <div>
+                            <h4 class="font-semibold ${isCurrentUser ? 'text-green-800' : 'text-gray-800'}">${user.name} ${isCurrentUser ? '(You)' : ''}</h4>
+                            <p class="text-sm text-gray-600">${user.institution} - Grade ${user.grade}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="text-xl font-bold ${isCurrentUser ? 'text-green-600' : 'text-gray-800'}">${user.totalScore || 0}</div>
+                        <div class="text-xs text-gray-500">Level ${user.level || 1}</div>
+                    </div>
+                `;
+                
+                leaderboardContainer.appendChild(userDiv);
+            });
+        }
+
+        function showLeaderboard() {
+            showSection('leaderboard');
+        }
+
+        // Hint functions for all games
+        function showWordleHint() {
+            const word = currentWordleWord.word;
+            const hints = [
+                `The word starts with "${word[0]}"`,
+                `The word ends with "${word[word.length-1]}"`,
+                `The word has ${word.length} letters`,
+                `The second letter is "${word[1]}"`,
+                `Here's the full hint: ${currentWordleWord.hint}`
+            ];
+            
+            const randomHint = hints[Math.floor(Math.random() * hints.length)];
+            alert(`💡 Hint: ${randomHint}`);
+        }
+
+        function showQuizHint() {
+            const question = currentQuizQuestions[currentQuestionIndex];
+            const wrongOptions = question.options.filter((_, index) => index !== question.correct);
+            const eliminateOption = wrongOptions[Math.floor(Math.random() * wrongOptions.length)];
+            
+            alert(`💡 Hint: You can eliminate "${eliminateOption}" - it's definitely not the correct answer!`);
+        }
+
+        function showPuzzleHint() {
+            const word = currentPuzzleAnswer;
+            const hints = [
+                `The word starts with "${word[0]}"`,
+                `The word ends with "${word[word.length-1]}"`,
+                `The word has ${word.length} letters`,
+                `One of the middle letters is "${word[Math.floor(word.length/2)]}"`,
+                `Remember the hint: ${document.getElementById('puzzleHint').textContent}`
+            ];
+            
+            const randomHint = hints[Math.floor(Math.random() * hints.length)];
+            alert(`💡 Hint: ${randomHint}`);
+        }
+
+        function showSortingHint() {
+            const remainingItems = document.querySelectorAll('#itemsToSort .drag-item');
+            if (remainingItems.length === 0) {
+                alert('💡 All items have been sorted! Great job!');
+                return;
+            }
+            
+            const randomItem = remainingItems[Math.floor(Math.random() * remainingItems.length)];
+            const itemIndex = randomItem.dataset.index;
+            const item = sortingItems[itemIndex];
+            
+            const generalHints = {
+                'recyclable': 'This item can be processed and made into new products. Look for clean materials like paper, plastic, glass, or metal.',
+                'non-recyclable': 'This item cannot be recycled through regular programs. It might be organic waste, contaminated, or made of non-recyclable materials.'
+            };
+            
+            alert(`💡 Hint for "${item.name}": ${generalHints[item.type]}\n\n${getSortingExplanation(item)}`);
+        }
+
+        // Initialize keyboard support for puzzle
+        document.addEventListener('keydown', function(e) {
+            if (document.getElementById('puzzleModal').classList.contains('hidden')) return;
+            
+            if (e.key === 'Enter') {
+                checkPuzzleAnswer();
+            }
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9816a866a7053a48',t:'MTc1ODI1OTQ3OC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
